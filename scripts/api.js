@@ -1,5 +1,6 @@
 import { TICKETMASTER_API_KEY, HASDATA_MAPS_API_KEY, YELP_API_KEY } from './private_api_keys.js'
-import axios from "axios";
+import axios from "axios"
+import { computeSimilarityScore } from './ranking.js'
 
 const options = {
   method: 'GET',
@@ -11,9 +12,32 @@ const options = {
   }
 };
 
+/*
 try {
   const { data } = await axios.request(options);
 	console.log(data);
 } catch (error) {
 	console.error(error);
+}
+*/
+
+
+try {
+  const { data } = await axios.request(options);
+
+  const userQuery = "Things to do";
+  const userPreferences = ["outdoor", "cheap", "food"];
+
+  const rankedResults = data.localResults
+    .map(place => ({
+      place,
+      score: computeSimilarityScore(place, userQuery, userPreferences)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  console.log("Top Ranked Results:");
+  console.log(rankedResults.slice(0, 5));
+
+} catch (error) {
+  console.error(error);
 }
