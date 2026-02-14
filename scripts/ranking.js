@@ -1,6 +1,6 @@
 export function computeSimilarityScore(place, userQuery, userPreferences) {
   let score = 0;
-  let isFree = false;
+  //let isFree = false;
 
   const text = (
     (place.title || "") + " " +
@@ -58,12 +58,14 @@ export function computeSimilarityScore(place, userQuery, userPreferences) {
     if (pref.toLowerCase() === "free") {
       if (payments.length === 0) {
         //console.log(place.title + " TRIGGERED IS FREE");
-        isFree = true;
+        //isFree = true;
+        score = 0;
       }
     }
   });
   
-  return isFree ? score : 0;
+  return score;
+  //return isFree ? score : 0;
 }
 
 function flattenExtensions(exts) {

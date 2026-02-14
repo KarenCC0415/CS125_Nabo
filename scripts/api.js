@@ -2,13 +2,13 @@ import { TICKETMASTER_API_KEY, HASDATA_MAPS_API_KEY, YELP_API_KEY } from './priv
 import axios from "axios"
 import { computeSimilarityScore } from './ranking.js'
 
-const userQuery = "Free things to do";
-const userPreferences = ["outdoor", "free", "fun"];
+const userQuery = "asian food";
+const userPreferences = ["chinese", "korean"];
 
 const options = {
   method: 'GET',
   url: 'https://api.hasdata.com/scrape/google-maps/search',
-  params: {q: userQuery, ll: '@33.638695, -117.860383,14z'},
+  params: {q: userQuery, ll: '@34.0522,-118.2437,14z'},
   headers: {
     'x-api-key': HASDATA_MAPS_API_KEY,
     'Content-Type': 'application/json'
