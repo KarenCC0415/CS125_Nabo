@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NABO — Discover what's around you</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="main_style.css" />
+  <link rel="stylesheet" href="modal_style.css" />
+</head>
+<body>
+
+  <canvas id="petals"></canvas>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <nav>
+    <a href="#" class="logo">NAB<span>O</span></a>
+    <div class="nav-tag">Beta</div>
+  </nav>
+
+  <main class="hero">
+    <div class="hero-label">Your neighborhood, unlocked</div>
+
+    <h1>
+      Things to <span class="glow italic">do,</span><br>
+      right <span class="glow">near you</span>
+    </h1>
+
+    <p class="hero-sub">
+      Tell NABO what you're into. We surface activities, events, and spots around you — ranked by your vibe.
+    </p>
+
+    <a href="index.html" class="hero-cta">
+      📍 Find things to do &nbsp;→
+    </a>
+
+    <div id="locDisplay" class="loc-display">
+      <div class="loc-loading">
+        <div class="spinner"></div>
+        Detecting location…
+      </div>
+    </div>
+
+    <div class="pills">
+      <div class="pill">🎭 Events</div>
+      <div class="pill">🍜 Dining</div>
+      <div class="pill">🎨 Arts</div>
+      <div class="pill">🏞️ Outdoors</div>
+      <div class="pill">🎵 Live Music</div>
+      <div class="pill">🏋️ Fitness</div>
+      <div class="pill">🎮 Gaming</div>
+      <div class="pill">🛍️ Shopping</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 NABO</p>
+    <div class="location-chip">
+      <div class="dot"></div>
+      GPS-powered · No account needed
+    </div>
+  </footer>
+
+  <script src = "../scripts/profile.js"></script>
+  <script src = "../scripts/location.js"></script>
+  <script src = "./animation.js"></script>
+  <script src = "./main.js"></script>
+  <script src = "./modal.js"></script>
+  <script>
+    const locDisplay = document.getElementById('locDisplay');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const data = await res.json();
+          const a = data.address || {};
+          const city = a.city || a.town || a.village || a.suburb || 'Unknown';
+          const state = a.state || '';
+          const zip = a.postcode || '';
+          locDisplay.innerHTML = `
+            <div class="ping-wrap">
+              <div class="ping-ring"></div>
+              <div class="ping-dot"></div>
+            </div>
+            <div class="loc-text">
+              <span>${city}${state ? ', ' + state : ''}</span>${zip ? ' · ' + zip : ''}
+            </div>
+          `;
+          locDisplay.classList.add('visible');
+        } catch {
+          locDisplay.innerHTML = `<div class="loc-text">Location unavailable</div>`;
+          locDisplay.classList.add('visible');
+        }
+      },
+      () => {
+        locDisplay.innerHTML = `<div class="loc-text">Location unavailable</div>`;
+        locDisplay.classList.add('visible');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  </script>
+</body>
+</html>

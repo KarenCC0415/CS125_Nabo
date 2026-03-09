@@ -55,10 +55,28 @@ async function reverseGeocode(lat, lon) {
 
     stateEl.textContent = address.state || "Not available";
     zipEl.textContent = address.postcode || "Not available";
+
+    const locDisplay = document.getElementById('locDisplay');
+    if (locDisplay) {
+      const city = address.city || address.town || address.village || 'Unknown';
+      const state = address.state || '';
+      const zip = address.postcode || '';
+      locDisplay.innerHTML = `
+        <div class="ping-wrap">
+          <div class="ping-ring"></div>
+          <div class="ping-dot"></div>
+        </div>
+        <div class="loc-text">
+          <span>${city}${state ? ', ' + state : ''}</span>${zip ? ' · ' + zip : ''}
+        </div>
+      `;
+      locDisplay.classList.add('visible');
+    }
     
 
     status.textContent = "Location retrieved successfully.";
   } catch (err) {
     status.textContent = "Failed to resolve address.";
   }
+  
 }
