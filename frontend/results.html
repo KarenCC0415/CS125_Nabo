@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NABO — Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080508;
+      --surface: #110d11;
+      --card: #130f13;
+      --border: rgba(255,182,210,0.1);
+      --text: #fdf0f5;
+      --muted: rgba(253,220,235,0.45);
+      --pink: #ff6eb4;
+      --pink-soft: #ffb3d6;
+      --pink-dim: rgba(255,110,180,0.12);
+    }
+
+    body {
+      font-family: 'Epilogue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(90px);
+    }
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,110,180,0.15) 0%, transparent 70%);
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+    }
+    .orb-2 {
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(200,80,160,0.1) 0%, transparent 70%);
+      bottom: 100px; right: -60px;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,5,8,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 64px;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(255,110,180,0.4);
+      flex-shrink: 0;
+    }
+    .logo span { color: var(--pink); filter: drop-shadow(0 0 6px var(--pink)); }
+
+    .search-bar {
+      flex: 1;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      background: rgba(255,110,180,0.06);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0 18px;
+      gap: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: rgba(255,110,180,0.35);
+      box-shadow: 0 0 16px rgba(255,110,180,0.1);
+    }
+    .search-icon { font-size: 14px; opacity: 0.5; flex-shrink: 0; }
+    .search-bar input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'Epilogue', sans-serif;
+      font-size: 14px;
+      padding: 10px 0;
+    }
+    .search-bar input::placeholder { color: var(--muted); }
+
+    .search-submit {
+      background: var(--pink);
+      color: #1a0010;
+      border: none;
+      border-radius: 100px;
+      padding: 7px 18px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-shadow: 0 0 16px rgba(255,110,180,0.3);
+    }
+    .search-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 24px rgba(255,110,180,0.5);
+    }
+
+    .page {
+      flex: 1;
+      position: relative;
+      z-index: 10;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .results-header {
+      margin-bottom: 32px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .results-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .results-title span { color: var(--pink); }
+    .results-meta { font-size: 13px; color: var(--muted); }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--pink-dim);
+      font-size: 12px;
+      color: var(--pink-soft);
+      letter-spacing: 0.3px;
+    }
+
+    .results-grid { display: grid; gap: 14px; }
+
+    .result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: cardIn 0.4s ease forwards;
+      text-decoration: none;
+      color: inherit;
+    }
+    .result-card:hover {
+      border-color: rgba(255,110,180,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(255,110,180,0.08);
+    }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+    .card-left { min-width: 0; }
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .card-rank {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pink);
+      background: var(--pink-dim);
+      border: 1px solid rgba(255,110,180,0.2);
+      padding: 2px 10px;
+      border-radius: 100px;
+      flex-shrink: 0;
+    }
+    .card-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-type { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .card-address {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-address::before { content: '📍'; font-size: 12px; }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .card-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,110,180,0.03);
+    }
+    .card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .card-score {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--pink);
+      text-shadow: 0 0 16px rgba(255,110,180,0.5);
+      line-height: 1;
+    }
+    .card-score-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .card-rating { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; }
+    .stars { color: #f59e0b; font-size: 12px; }
+    .review-count { font-size: 11px; color: var(--muted); }
+
+    .state-box {
+      text-align: center;
+      padding: 80px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .state-icon { font-size: 48px; }
+    .state-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .state-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 340px; line-height: 1.6; }
+
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .skel {
+      background: linear-gradient(90deg, rgba(255,110,180,0.06) 25%, rgba(255,110,180,0.1) 50%, rgba(255,110,180,0.06) 75%);
+      background-size: 200% 100%;
+      border-radius: 6px;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skel-title { height: 20px; width: 55%; }
+    .skel-sub   { height: 14px; width: 35%; }
+    .skel-body  { height: 13px; width: 75%; }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 28px;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--pink); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; gap: 12px; }
+      .page { padding: 24px 16px 60px; }
+      .card-name { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav>
+    <a href="main.html" class="logo">NAB<span>O</span></a>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search activities, food, events…" />
+      <button class="search-submit" id="searchBtn">Go</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <a href="main.html" class="back-btn">← Back</a>
+
+    <div class="results-header">
+      <div class="results-title">Results for <span id="queryLabel">…</span></div>
+      <div class="results-meta" id="resultsMeta"></div>
+    </div>
+
+    <div class="filters" id="filtersRow"></div>
+    <div class="results-grid" id="resultsGrid"></div>
+  </div>
+
+  <script src = "../scripts/profile.js"></script>
+  <script src = "../scripts/server.js"></script>
+  <script src = "./api.js"></script>
+  <script src = "../scripts/location.js"></script>
+
+  <script type="module">
+    import { fetchResults } from './api.js';
+
+    const grid = document.getElementById('resultsGrid');
+
+    // ── Show skeletons while loading ──
+    grid.innerHTML = Array(5).fill(`
+      <div class="skeleton-card">
+        <div class="skel skel-title"></div>
+        <div class="skel skel-sub"></div>
+        <div class="skel skel-body"></div>
+      </div>`).join('');
+
+    // ── Read URL params ──
+    const params   = new URLSearchParams(window.location.search);
+    const query    = params.get('q') || '';
+    const lat      = params.get('lat');
+    const lng      = params.get('lng');
+    const prefsRaw = params.get('prefs') || '';
+    const prefs    = prefsRaw ? prefsRaw.split(',') : [];
+    const coords   = (lat && lng) ? { lat, lng } : null;
+
+    // ── Populate header ──
+    document.getElementById('queryLabel').textContent = `"${query}"`;
+    document.getElementById('searchInput').value = query;
+    document.title = `NABO — ${query}`;
+
+    // ── Show pref filter chips ──
+    const filtersRow = document.getElementById('filtersRow');
+    if (prefs.length) {
+      filtersRow.innerHTML = prefs.map(p =>
+        `<div class="filter-chip">✦ ${p}</div>`
+      ).join('');
+    }
+
+    // ── Helpers ──
+    function starsHTML(rating) {
+      const full  = Math.floor(rating);
+      const half  = rating % 1 >= 0.5 ? 1 : 0;
+      const empty = 5 - full - half;
+      return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+    }
+
+    function renderCards(results) {
+      if (!results.length) {
+        grid.innerHTML = `
+          <div class="state-box">
+            <div class="state-icon">🌸</div>
+            <div class="state-title">No results found</div>
+            <p class="state-sub">Try a different search or broaden your preferences.</p>
+          </div>`;
+        return;
+      }
+
+      document.getElementById('resultsMeta').textContent = `${results.length} places found`;
+
+      grid.innerHTML = results.map((place, i) => {
+        const score   = Math.round(place.score ?? 0);
+        const name    = place.title || 'Unnamed Place';
+        const type    = place.type || '';
+        const address = place.address || '';
+        const rating  = place.rating ?? null;
+        const reviews = place.reviews ?? null;
+        const url     = place.website || place.link || '#';
+        const types   = (place.types || []).slice(0, 3);
+
+        if (window.NaboProfile) {
+          NaboProfile.trackViewed({ placeId: place.placeId || name, name, category: type });
+        }
+
+        return `
+          <a class="result-card" href="${url}" target="_blank" rel="noopener"
+             style="animation-delay:${i * 0.05}s"
+             data-place-id="${place.placeId || ''}"
+             data-name="${name}"
+             data-category="${type}">
+            <div class="card-left">
+              <div class="card-top">
+                <span class="card-rank">#${i + 1}</span>
+                <span class="card-name">${name}</span>
+              </div>
+              ${type    ? `<div class="card-type">${type}</div>` : ''}
+              ${address ? `<div class="card-address">${address}</div>` : ''}
+              ${types.length ? `<div class="card-tags">${types.map(t => `<span class="card-tag">${t}</span>`).join('')}</div>` : ''}
+            </div>
+            <div class="card-right">
+              <div>
+                <div class="card-score">${score}</div>
+                <div class="card-score-label">score</div>
+              </div>
+              ${rating ? `
+                <div class="card-rating">
+                  <span class="stars">${starsHTML(rating)}</span>
+                  <span>${rating.toFixed(1)}</span>
+                  ${reviews ? `<span class="review-count">(${reviews.toLocaleString()})</span>` : ''}
+                </div>` : ''}
+            </div>
+          </a>`;
+      }).join('');
+
+      grid.querySelectorAll('.result-card').forEach(card => {
+        card.addEventListener('click', () => {
+          if (window.NaboProfile) {
+            NaboProfile.trackClicked({
+              placeId:  card.dataset.placeId,
+              name:     card.dataset.name,
+              category: card.dataset.category,
+            });
+          }
+        });
+      });
+    }
+
+    function renderError() {
+      grid.innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">⚠️</div>
+          <div class="state-title">Something went wrong</div>
+          <p class="state-sub">Couldn't reach the server. Make sure it's running on port 3000.</p>
+        </div>`;
+    }
+
+    // ── Fetch & render ──
+    async function load() {
+      if (!query) {
+        grid.innerHTML = `
+          <div class="state-box">
+            <div class="state-icon">🔍</div>
+            <div class="state-title">What are you looking for?</div>
+            <p class="state-sub">Type something in the search bar above.</p>
+          </div>`;
+        return;
+      }
+      try {
+        const results = await fetchResults(query, coords, prefs);
+        //const results = raw.map(item => ({ ...item.place, score: item.score }));
+        console.log(results);
+        renderCards(results);
+      } catch (err) {
+        console.error(err);
+        renderError();
+      }
+    }
+
+    load();
+
+    // ── Nav search bar ──
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      const p = new URLSearchParams({ q });
+      if (coords) { p.set('lat', lat); p.set('lng', lng); }
+      if (prefs.length) p.set('prefs', prefsRaw);
+      window.location.href = `results.html?${p}`;
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', doSearch);
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doSearch();
+    });
+  </script>
+
+</body>
+</html>

@@ -8,21 +8,20 @@ import { computeSimilarityScore } from './ranking.js';
 
 const app = express();
 
-NaboProfile.init();
-
-const profile = NaboProfile.get();
-const userPreferences = profile.prefs.interests.map(i => i.toLowerCase());
-
-app.use(express.static('.')); // serves your HTML/CSS/JS files
+app.use(express.static('../frontend'));
 
 app.get('/api/search', async (req, res) => {
-  const { q, lat, lng } = req.query;
+  const { q, lat, lng, prefs } = req.query;
   if (!q) return res.status(400).json({ error: 'Missing query' });
 
-  // Default to LA if no coords provided
   const ll = (lat && lng)
     ? `@${lat},${lng},14z`
     : '@34.0522,-118.2437,14z';
+
+  // Parse prefs sent from client e.g. "concerts,food,outdoors"
+  const userPreferences = prefs
+    ? prefs.split(',').map(p => p.trim().toLowerCase())
+    : [];
 
   try {
     const allResults = [];
@@ -48,7 +47,6 @@ app.get('/api/search', async (req, res) => {
       if (!nextPageToken) break;
     }
 
-    // Rank results
     const ranked = allResults
       .map(place => ({
         ...place,

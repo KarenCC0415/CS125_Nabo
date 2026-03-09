@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const existing = loadCachedPrefs();
       if (existing) {
-        window.location.href = 'index.html';
+        window.location.href = 'results.html';
       } else {
         openModal();
       }

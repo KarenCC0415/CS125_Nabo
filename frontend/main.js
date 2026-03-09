@@ -1,23 +1,39 @@
+// main.js
+
+// ── Init profile (reads from localStorage via profile.js) ──
+NaboProfile.init();
+const profile = NaboProfile.get();
+const userPreferences = profile.prefs.interests.map(i => i.toLowerCase());
+
+// ── Navigate to results page with query, prefs, and coords ──
 function goSearch(query) {
-    if (!query.trim()) return;
-    window.location.href = `results.html?q=${encodeURIComponent(query.trim())}`;
+  if (!query.trim()) return;
+
+  NaboProfile.trackSearch(query.trim());
+
+  // Grab coords stored on the page by the geolocation script in main.html
+  const latEl = document.getElementById('lat');
+  const lngEl = document.getElementById('long');
+  const lat = latEl?.textContent?.trim();
+  const lng = lngEl?.textContent?.trim();
+
+  const params = new URLSearchParams({ q: query.trim() });
+  if (lat && lng && lat !== '—' && lng !== '-') {
+    params.set('lat', lat);
+    params.set('lng', lng);
+  }
+  if (userPreferences.length) {
+    params.set('prefs', userPreferences.join(','));
+  }
+
+  window.location.href = `results.html?${params}`;
 }
 
-
-
-document.getElementById('heroCta').addEventListener('click', () => {
-  goSearch(document.getElementById('heroSearch').value);
-});
-
-
-
-document.getElementById('heroSearch').addEventListener('keydown', e => {
-  if (e.key === 'Enter') goSearch(e.target.value);
-});
-
-
-
-// Clicking a pill searches directly
-document.querySelectorAll('.pill[data-q]').forEach(pill => {
-  pill.addEventListener('click', () => goSearch(pill.dataset.q));
+// ── Pill clicks ──
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    // Strip leading emoji (first non-space word) to get the label
+    const query = pill.textContent.trim().replace(/^\S+\s*/, '');
+    goSearch(query);
+  });
 });
