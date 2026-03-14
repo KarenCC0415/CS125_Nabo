@@ -1,66 +1,48 @@
-const button = document.getElementById("getLocationBtn");
-const status = document.getElementById("status");
 
-const cityEl = document.getElementById("city");
-const stateEl = document.getElementById("state");
-const zipEl = document.getElementById("zip");
-const longEl = document.getElementById("long");
-const latEl = document.getElementById("lat");
+/*
+// ── Location Display ──
+// Reads location from NaboProfile (already acquired on init).
+// Falls back to a fresh GPS lookup only if the profile has no location yet.
 
-button.addEventListener("click", () => {
-  status.textContent = "Getting location...";
+const locDisplay = document.getElementById('locDisplay');
 
-  if (!navigator.geolocation) {
-    status.textContent = "Geolocation is not supported by your browser.";
-    return;
+async function showLocation() {
+  // 1. Try to get location from the profile first
+  let loc = NaboProfile.get()?.location;
+
+  // 2. If profile isn't ready yet (e.g. this script runs before init resolves),
+  //    wait briefly then re-check before falling back to a fresh lookup.
+  if (!loc?.lat) {
+    await new Promise(r => setTimeout(r, 500));
+    loc = NaboProfile.get()?.location;
   }
 
-  navigator.geolocation.getCurrentPosition(
-    success,
-    error,
-    { enableHighAccuracy: true }
-  );
-});
+  // 3. Last resort — trigger a fresh acquire and persist it to the profile
+  if (!loc?.lat) {
+    const profile = await NaboProfile.refreshLocation();
+    loc = profile?.location;
+  }
 
-function success(position) {
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;
+  if (loc?.lat) {
+    // Reverse-geocode for a human-readable label
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lng}`
+      );
+      const data = await res.json();
+      const a = data.address || {};
+      const city  = a.city || a.town || a.village || a.suburb || 'Unknown';
+      const state = a.state || '';
+      const zip   = a.postcode || '';
 
-  longEl.textContent = longitude.toFixed(6);
-  latEl.textContent = latitude.toFixed(6);
+      // Patch the Nominatim-derived city back into the stored profile
+      const profile = NaboProfile.get();
+      if (profile) {
+        profile.location.city = city;
+        profile.location.acquiredAt = profile.location.acquiredAt || new Date().toISOString();
+        localStorage.setItem('naboProfile', JSON.stringify(profile));
+      }
 
-  reverseGeocode(latitude, longitude);
-}
-
-function error() {
-  status.textContent = "Unable to retrieve your location.";
-}
-
-async function reverseGeocode(lat, lon) {
-  try {
-    status.textContent = "Resolving address...";
-
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-    );
-
-    const data = await response.json();
-    const address = data.address || {};
-
-    cityEl.textContent =
-      address.city ||
-      address.town ||
-      address.village ||
-      "Not available";
-
-    stateEl.textContent = address.state || "Not available";
-    zipEl.textContent = address.postcode || "Not available";
-
-    const locDisplay = document.getElementById('locDisplay');
-    if (locDisplay) {
-      const city = address.city || address.town || address.village || 'Unknown';
-      const state = address.state || '';
-      const zip = address.postcode || '';
       locDisplay.innerHTML = `
         <div class="ping-wrap">
           <div class="ping-ring"></div>
@@ -70,13 +52,15 @@ async function reverseGeocode(lat, lon) {
           <span>${city}${state ? ', ' + state : ''}</span>${zip ? ' · ' + zip : ''}
         </div>
       `;
-      locDisplay.classList.add('visible');
+    } catch {
+      locDisplay.innerHTML = `<div class="loc-text">Location unavailable</div>`;
     }
-    
-
-    status.textContent = "Location retrieved successfully.";
-  } catch (err) {
-    status.textContent = "Failed to resolve address.";
+  } else {
+    locDisplay.innerHTML = `<div class="loc-text">Location unavailable</div>`;
   }
-  
+
+  locDisplay.classList.add('visible');
 }
+
+showLocation();
+*/

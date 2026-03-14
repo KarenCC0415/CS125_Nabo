@@ -3,20 +3,33 @@
 
 import express from 'express';
 import axios from 'axios';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { HASDATA_MAPS_API_KEY } from './private_api_keys.js';
 import { computeSimilarityScore } from './ranking.js';
 
+// __dirname is not available in ES modules — reconstruct it
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
 const app = express();
 
-app.use(express.static('../frontend'));
+app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/scripts', express.static(path.join(__dirname)));
+
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.get('/api/search', async (req, res) => {
   const { q, lat, lng, prefs } = req.query;
   if (!q) return res.status(400).json({ error: 'Missing query' });
 
-  const ll = (lat && lng)
-    ? `@${lat},${lng},14z`
-    : '@34.0522,-118.2437,14z';
+  let ll;
+  if (lat && lng) {
+    ll = `@${lat},${lng},14z`;
+  } else {
+    console.warn('⚠️  No lat/lng received — falling back to Irvine default');
+    ll = '@33.6846,-117.8265,14z';
+  }
 
   // Parse prefs sent from client e.g. "concerts,food,outdoors"
   const userPreferences = prefs
@@ -53,12 +66,18 @@ app.get('/api/search', async (req, res) => {
         score: computeSimilarityScore(place, q, userPreferences)
       }))
       .sort((a, b) => b.score - a.score);
-
+    
+    
+    
     res.json({ results: ranked });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Failed to fetch results' });
   }
+});
+
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '../frontend/404.html'));
 });
 
 app.listen(3000, () => console.log('NABO server running at http://localhost:3000'));

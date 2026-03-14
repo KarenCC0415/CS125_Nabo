@@ -1,6 +1,7 @@
 // ── NABO USER PROFILE ──
 // Persistent profile object that starts from modal prefs
 // and grows as the user interacts with the app.
+// Location is set externally via NaboProfile.saveLocation() in main.html.
 
 const PROFILE_KEY = 'naboProfile';
 
@@ -13,13 +14,23 @@ const defaultProfile = {
     budget: null,
     time: null,
   },
+  location: {
+    lat: null,
+    lng: null,
+    city: null,
+    state: null,
+    zip: null,
+    country: null,
+    source: null,
+    acquiredAt: null,
+  },
   history: {
-    searches: [],       // { query, timestamp }
-    viewed: [],         // { placeId, name, category, timestamp }
-    clicked: [],        // { placeId, name, timestamp }
+    searches: [],
+    viewed: [],
+    clicked: [],
   },
   derived: {
-    topCategories: [],  // auto-computed from activity
+    topCategories: [],
     totalSearches: 0,
   }
 };
@@ -39,20 +50,16 @@ function saveProfile(profile) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
 }
 
-// ── Init: build profile from modal prefs on first run ──
+// ── Init ──
 
-function initProfile() {
-  const existing = getProfile();
-  if (existing) return existing;
-
-  // Pull from naboPrefs set by modal
+function _buildDefaultProfile() {
   let modalPrefs = {};
   try {
     const raw = localStorage.getItem('naboPrefs');
     if (raw) modalPrefs = JSON.parse(raw);
   } catch {}
 
-  const profile = {
+  return {
     ...defaultProfile,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -63,17 +70,22 @@ function initProfile() {
       time:      modalPrefs.time      || null,
     },
   };
+}
 
+function initProfile() {
+  const existing = getProfile();
+  if (existing) return existing;
+
+  const profile = _buildDefaultProfile();
   saveProfile(profile);
   return profile;
 }
 
-// ── Update prefs (e.g. user changes settings later) ──
+// ── Update prefs ──
 
 function updatePrefs(newPrefs) {
-  const profile = getProfile() || initProfile();
+  const profile = getProfile() || _buildDefaultProfile();
   profile.prefs = { ...profile.prefs, ...newPrefs };
-  // Also keep naboPrefs in sync
   localStorage.setItem('naboPrefs', JSON.stringify(profile.prefs));
   saveProfile(profile);
   return profile;
@@ -82,9 +94,8 @@ function updatePrefs(newPrefs) {
 // ── Track a search query ──
 
 function trackSearch(query) {
-  const profile = getProfile() || initProfile();
+  const profile = getProfile() || _buildDefaultProfile();
   profile.history.searches.unshift({ query, timestamp: new Date().toISOString() });
-  // Keep last 50 searches
   profile.history.searches = profile.history.searches.slice(0, 50);
   profile.derived.totalSearches = profile.history.searches.length;
   saveProfile(profile);
@@ -93,26 +104,24 @@ function trackSearch(query) {
 // ── Track a result being viewed ──
 
 function trackViewed(place) {
-  // place: { placeId, name, category }
-  const profile = getProfile() || initProfile();
+  const profile = getProfile() || _buildDefaultProfile();
   profile.history.viewed.unshift({ ...place, timestamp: new Date().toISOString() });
   profile.history.viewed = profile.history.viewed.slice(0, 100);
   _recomputeTopCategories(profile);
   saveProfile(profile);
 }
 
-// ── Track a result being clicked/opened ──
+// ── Track a result being clicked ──
 
 function trackClicked(place) {
-  // place: { placeId, name, category }
-  const profile = getProfile() || initProfile();
+  const profile = getProfile() || _buildDefaultProfile();
   profile.history.clicked.unshift({ ...place, timestamp: new Date().toISOString() });
   profile.history.clicked = profile.history.clicked.slice(0, 100);
   _recomputeTopCategories(profile);
   saveProfile(profile);
 }
 
-// ── Derive top categories from click + view history ──
+// ── Derive top categories ──
 
 function _recomputeTopCategories(profile) {
   const counts = {};
@@ -128,14 +137,14 @@ function _recomputeTopCategories(profile) {
     .map(([category, count]) => ({ category, count }));
 }
 
-// ── Clear profile (e.g. reset button) ──
+// ── Clear profile ──
 
 function clearProfile() {
   localStorage.removeItem(PROFILE_KEY);
   localStorage.removeItem('naboPrefs');
 }
 
-// ── Export for use across the app ──
+// ── Export ──
 
 window.NaboProfile = {
   init:         initProfile,
@@ -145,4 +154,10 @@ window.NaboProfile = {
   trackViewed,
   trackClicked,
   clear:        clearProfile,
+  saveLocation: function(locObj) {
+    console.log('saveLocation called:', locObj);
+    const profile = getProfile() || _buildDefaultProfile();
+    profile.location = { ...(profile.location || {}), ...locObj };
+    saveProfile(profile);
+  }
 };
