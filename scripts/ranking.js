@@ -1,4 +1,13 @@
 import { get } from "http";
+import fs from "fs";
+import path from "path";
+
+const LOG_FILE = path.resolve("nabo.log");
+
+function log(message) {
+  const line = `[${new Date().toISOString()}] ${message}\n`;
+  fs.appendFileSync(LOG_FILE, line, "utf8");
+}
 
 const STOP_WORDS = new Set([
   "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
@@ -18,8 +27,6 @@ function filterStopWords(words) {
   return words.filter(w => w.length > 1 && !STOP_WORDS.has(w));
 }
 
-// ── Budget scale ──
-// User preference tiers (from modal)
 const BUDGET_RANGES = {
   'free': { min: 0,   max: 0        },
   '$':    { min: 1,   max: 19       },
@@ -27,25 +34,16 @@ const BUDGET_RANGES = {
   '$$$':  { min: 50,  max: Infinity },
 };
 
-// place.price symbol -> numeric midpoint used for range comparison
-// "$1–10"  -> mid 5   -> falls in $   (1–19)
-// "$10–20" -> mid 15  -> falls in $   (1–19)
-// "$30–50" -> mid 40  -> falls in $$  (20–49)
-// "$50–100"-> mid 75  -> falls in $$$ (50+)
+
 const SYMBOL_TO_MIDPOINT = {
-  '$':   10,   // treat bare "$"  as mid of $1–19
-  '$$':  35,   // treat bare "$$" as mid of $20–49
-  '$$$': 75,   // treat bare "$$$"as mid of $50–100
+  '$':   10,
+  '$$':  35,
+  '$$$': 75,
 };
 
-// Returns a range object if pref is a recognised budget tier, else null.
 function parseBudgetRange(pref) {
   return BUDGET_RANGES[pref.trim().toLowerCase()] ?? null;
 }
-
-// Parses price strings like "$10–20", "$5-15", or "$25" into a numeric midpoint.
-// Handles en-dash (–) and regular hyphen (-).
-// Returns null if unparseable.
 function parsePriceString(priceStr) {
   if (!priceStr) return null;
   const cleaned = priceStr.replace(/[$\u20ac\u00a3\u00a5\s]/g, '');
@@ -58,7 +56,6 @@ function parsePriceString(priceStr) {
   return null;
 }
 
-// Haversine formula -- returns distance in miles between two lat/lng points
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 3958.8;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -71,12 +68,9 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// userCoords: { lat, lng }   (from req.query, passed in from server.js)
-// maxDistanceMiles: number | null   (from profile.prefs.distance)
 export function computeSimilarityScore(place, userQuery, userPreferences, userCoords = null, maxDistanceMiles = null) {
   let score = 0;
 
-  // ── Distance ──
   const placeLat = place.gpsCoordinates?.latitude  ?? place.gpsCoordinates?.lat ?? null;
   const placeLng = place.gpsCoordinates?.longitude ?? place.gpsCoordinates?.lng ?? null;
 
@@ -94,36 +88,37 @@ export function computeSimilarityScore(place, userQuery, userPreferences, userCo
     score += Math.max(0, 10 * (1 - distanceMiles / ceiling));
   }
 
-  // ── Budget hard filter ──
-  // Step 1: check if place.price is a bare symbol ("$", "$$", "$$$").
-  //         If so, convert to a known midpoint and compare against the user's tier.
-  // Step 2: if not a symbol, try to parse it as a range string ("$10–20") and use the midpoint.
-  // Step 3: if no price data at all, let the place through unpenalised.
   const budgetPref = userPreferences.find(p => parseBudgetRange(p) !== null);
+  log("do we have a budgetpref?: " + budgetPref);
   if (budgetPref) {
+    log("WE HAVE A BUDGET PREF");
     const budgetRange = parseBudgetRange(budgetPref);
     const rawPrice    = (place.price || "").toString().trim();
 
     let priceMidpoint = null;
 
     if (SYMBOL_TO_MIDPOINT.hasOwnProperty(rawPrice)) {
-      // ── It's a bare symbol: "$", "$$", or "$$$" ──
       priceMidpoint = SYMBOL_TO_MIDPOINT[rawPrice];
     } else {
-      // ── Try to parse as a range or single number ──
       priceMidpoint = parsePriceString(rawPrice);
     }
 
+    log("PRICE_MIDPOINT:" + priceMidpoint);
+    
     if (priceMidpoint !== null && !isNaN(priceMidpoint)) {
+      log("PRICE MIDPOINT EXISTS");
       if (priceMidpoint < budgetRange.min || priceMidpoint > budgetRange.max) {
-        score -= 75; // outside budget — exclude entirely
+        log("PRICE MIDPOINT OUTSIDE BUDGET RANGE");
+        score -= 75; 
       }
-      score += 20; // confirmed in-range bonus
+
+      log("PRICE MIDPOINT PERFECT FOR BUDGET RANGE");
+      score += 100; 
     }
-    // priceMidpoint === null means no usable price data — let through unpenalised
+  
   }
 
-  // ── Text relevance ──
+
   const text = (
     (place.title || "") + " " +
     (place.address?.toLowerCase() || "") + " " +
@@ -149,12 +144,12 @@ export function computeSimilarityScore(place, userQuery, userPreferences, userCo
     if (extensionsText.includes(prefClean)) score += 5;
   });
 
-  // ── Rating ──
+
   if (place.rating && place.reviews) {
     score += place.rating * Math.log(place.reviews + 1);
   }
 
-  // ── Free preference (payments extension) ──
+
   const payments = (place.extensions?.payments || []).map(p => p.toLowerCase());
   userPreferences.forEach(pref => {
     if (filterStopWords(pref.toLowerCase().split(/\s+/)).includes("free")) {

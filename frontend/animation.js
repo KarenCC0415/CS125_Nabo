@@ -1,4 +1,3 @@
-// Floating sakura petals
 const canvas = document.getElementById('petals');
 const ctx = canvas.getContext('2d');
 
@@ -29,7 +28,7 @@ function randomPetal() {
 
 for (let i = 0; i < PETAL_COUNT; i++) {
   const p = randomPetal();
-  p.y = Math.random() * canvas.height; // scatter on load
+  p.y = Math.random() * canvas.height;
   petals.push(p);
 }
 
@@ -38,7 +37,6 @@ function drawPetal(p) {
   ctx.translate(p.x, p.y);
   ctx.rotate(p.rotation);
   ctx.globalAlpha = p.opacity;
-  // simple 5-petal flower shape scaled down as a single petal
   ctx.beginPath();
   ctx.ellipse(0, -p.size * 0.6, p.size * 0.35, p.size * 0.7, 0, 0, Math.PI * 2);
   ctx.fillStyle = `hsl(${330 + Math.random() * 20}, 90%, 78%)`;

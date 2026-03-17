@@ -1,5 +1,3 @@
-// ── NABO PREFERENCE MODAL ──
-
 const INTERESTS = [
   { emoji: '🎵', label: 'Concerts' },
   { emoji: '🍜', label: 'Food' },
@@ -27,7 +25,6 @@ const TOTAL_STEPS = 4;
 let currentStep = 1;
 let prefs = { interests: [], distance: null, budget: null, time: null };
 
-// ── Load cached prefs from localStorage if they exist ──
 function loadCachedPrefs() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -40,35 +37,16 @@ function savePrefs() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
 }
 
-// ── On page load: show modal only if no cached prefs ──
 document.addEventListener('DOMContentLoaded', () => {
   const cached = loadCachedPrefs();
 
   if (!cached) {
-    // First-time visitor — show modal after a short delay
     setTimeout(openModal, 600);
   } else {
-    // Returning visitor — use cached prefs, CTA goes straight to app
     prefs = cached;
-  }
-
-  // CTA button — always intercept to open modal if no prefs yet,
-  // or go straight to index.html if prefs already set
-  const cta = document.querySelector('.hero-cta');
-  if (cta) {
-    cta.addEventListener('click', e => {
-      e.preventDefault();
-      const existing = loadCachedPrefs();
-      if (existing) {
-        window.location.href = 'results.html';
-      } else {
-        openModal();
-      }
-    });
   }
 });
 
-// ── Build modal DOM ──
 function buildModal() {
   const overlay = document.createElement('div');
   overlay.id = 'naboModal';
@@ -96,7 +74,6 @@ function buildModal() {
   renderStep(1);
 }
 
-// ── Render each step ──
 function renderStep(step) {
   const container = document.getElementById('modalSteps');
   document.getElementById('progressFill').style.width = `${(step / TOTAL_STEPS) * 100}%`;
@@ -104,7 +81,6 @@ function renderStep(step) {
   document.getElementById('modalBack').style.visibility = step === 1 ? 'hidden' : 'visible';
   document.getElementById('modalNext').textContent = step === TOTAL_STEPS ? "Let's go 🎉" : 'Next →';
 
-  // Animate step swap
   container.style.opacity = '0';
   container.style.transform = 'translateY(10px)';
 
@@ -217,7 +193,6 @@ function renderTime(container) {
   });
 }
 
-// ── Navigation ──
 function nextStep() {
   if (currentStep < TOTAL_STEPS) {
     currentStep++;
@@ -236,8 +211,13 @@ function prevStep() {
 
 function saveAndClose() {
   savePrefs();
+  window.NaboProfile?.updatePrefs({
+    interests: prefs.interests,
+    distance:  prefs.distance,
+    budget:    prefs.budget,
+    time:      prefs.time,
+  });
   closeModal();
-  window.location.href = 'main.html';
 }
 
 function closeModal() {

@@ -1,8 +1,3 @@
-// ── NABO USER PROFILE ──
-// Persistent profile object that starts from modal prefs
-// and grows as the user interacts with the app.
-// Location is set externally via NaboProfile.saveLocation() in main.html.
-
 const PROFILE_KEY = 'naboProfile';
 
 const defaultProfile = {
@@ -35,8 +30,6 @@ const defaultProfile = {
   }
 };
 
-// ── Read / Write ──
-
 function getProfile() {
   try {
     const stored = localStorage.getItem(PROFILE_KEY);
@@ -50,7 +43,6 @@ function saveProfile(profile) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
 }
 
-// ── Init ──
 
 function _buildDefaultProfile() {
   let modalPrefs = {};
@@ -81,8 +73,6 @@ function initProfile() {
   return profile;
 }
 
-// ── Update prefs ──
-
 function updatePrefs(newPrefs) {
   const profile = getProfile() || _buildDefaultProfile();
   profile.prefs = { ...profile.prefs, ...newPrefs };
@@ -91,7 +81,6 @@ function updatePrefs(newPrefs) {
   return profile;
 }
 
-// ── Track a search query ──
 
 function trackSearch(query) {
   const profile = getProfile() || _buildDefaultProfile();
@@ -101,7 +90,6 @@ function trackSearch(query) {
   saveProfile(profile);
 }
 
-// ── Track a result being viewed ──
 
 function trackViewed(place) {
   const profile = getProfile() || _buildDefaultProfile();
@@ -111,7 +99,6 @@ function trackViewed(place) {
   saveProfile(profile);
 }
 
-// ── Track a result being clicked ──
 
 function trackClicked(place) {
   const profile = getProfile() || _buildDefaultProfile();
@@ -120,8 +107,6 @@ function trackClicked(place) {
   _recomputeTopCategories(profile);
   saveProfile(profile);
 }
-
-// ── Derive top categories ──
 
 function _recomputeTopCategories(profile) {
   const counts = {};
@@ -137,14 +122,12 @@ function _recomputeTopCategories(profile) {
     .map(([category, count]) => ({ category, count }));
 }
 
-// ── Clear profile ──
 
 function clearProfile() {
   localStorage.removeItem(PROFILE_KEY);
   localStorage.removeItem('naboPrefs');
 }
 
-// ── Export ──
 
 window.NaboProfile = {
   init:         initProfile,

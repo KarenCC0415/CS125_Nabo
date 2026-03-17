@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NABO — Page Not Found</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080508;
+      --border: rgba(255,182,210,0.1);
+      --text: #fdf0f5;
+      --muted: rgba(253,220,235,0.45);
+      --pink: #ff6eb4;
+      --pink-soft: #ffb3d6;
+      --pink-dim: rgba(255,110,180,0.12);
+    }
+
+    body {
+      font-family: 'Epilogue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(90px);
+    }
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,110,180,0.12) 0%, transparent 70%);
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+    }
+    .orb-2 {
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(200,80,160,0.08) 0%, transparent 70%);
+      bottom: 60px; right: -60px;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(255,110,180,0.4);
+    }
+    .logo span { color: var(--pink); filter: drop-shadow(0 0 6px var(--pink)); }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      opacity: 0;
+      animation: up 0.6s ease 0.2s forwards;
+    }
+
+    .code {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(80px, 15vw, 140px);
+      font-weight: 800;
+      letter-spacing: -4px;
+      line-height: 1;
+      color: var(--pink);
+      text-shadow:
+        0 0 30px rgba(255,110,180,0.6),
+        0 0 80px rgba(255,110,180,0.3);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    p {
+      font-size: 16px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.65;
+      max-width: 360px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--pink);
+      color: #1a0010;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 30px;
+      border-radius: 100px;
+      text-decoration: none;
+      margin-top: 8px;
+      transition: transform 0.2s, box-shadow 0.2s, gap 0.2s;
+      box-shadow: 0 0 30px rgba(255,110,180,0.35);
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px rgba(255,110,180,0.5);
+      gap: 16px;
+    }
+
+    @keyframes up {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav>
+    <a href="main.html" class="logo">NAB<span>O</span></a>
+  </nav>
+
+  <div class="content">
+    <div class="code">404</div>
+    <h1>This page doesn't exist</h1>
+    <p>The page you're looking for has moved, been deleted, or never existed in the first place.</p>
+    <a href="main.html" class="btn">← Back to NABO</a>
+  </div>
+
+</body>
+</html>

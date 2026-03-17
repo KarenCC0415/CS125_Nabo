@@ -1,6 +1,3 @@
-// server.js — run with: node server.js
-// This keeps your API keys on the server, never exposed to the browser.
-
 import express from 'express';
 import axios from 'axios';
 import path from 'path';
@@ -33,7 +30,6 @@ app.get('/api/search', async (req, res) => {
   console.log("CURRENTLY IN SERVER.JS: GOING TO OUTPUT PREFS\n");
   console.log(prefs);
 
-  // Split all prefs, then separate interests from distance
   const allPrefs = prefs ? prefs.split(',').map(p => p.trim().toLowerCase()) : [];
 
   const userPreferences = allPrefs.filter(p => !p.includes('mile') && p !== null);
@@ -75,7 +71,6 @@ app.get('/api/search', async (req, res) => {
 
     console.log(`[NABO] ${allResults.length} results fetched, ranking...`);
 
-    // ── Score all places ──
     const scored = allResults
       .map(place => ({
         ...place,
@@ -83,7 +78,6 @@ app.get('/api/search', async (req, res) => {
       }))
       .filter(p => p.score !== -Infinity);
 
-    // ── Normalize scores to 1–100 ──
     const rawScores = scored.map(p => p.score);
     const minScore  = Math.min(...rawScores);
     const maxScore  = Math.max(...rawScores);

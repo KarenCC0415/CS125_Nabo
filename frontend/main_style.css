@@ -22,7 +22,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ── PETAL CANVAS ── */
 canvas#petals {
   position: fixed;
   inset: 0;
@@ -31,7 +30,6 @@ canvas#petals {
   opacity: 0.45;
 }
 
-/* ── BIG BACKGROUND GLOW ORBS ── */
 .orb {
   position: fixed;
   border-radius: 50%;
@@ -72,7 +70,6 @@ canvas#petals {
   to   { transform: translate(-20px, -30px); }
 }
 
-/* ── NAV ── */
 nav {
   position: relative; z-index: 10;
   padding: 28px 48px;
@@ -107,7 +104,6 @@ nav {
   background: var(--pink-dim);
 }
 
-/* ── HERO ── */
 .hero {
   flex: 1;
   position: relative; z-index: 10;
@@ -173,7 +169,6 @@ h1 .italic { font-style: italic; font-weight: 400; }
   animation: up 0.7s ease 0.45s forwards;
 }
 
-/* glowing button */
 .hero-cta {
   position: relative;
   display: inline-flex;
@@ -237,7 +232,6 @@ h1 .italic { font-style: italic; font-weight: 400; }
   box-shadow: 0 0 12px rgba(255,110,180,0.15);
 }
 
-/* ── FOOTER ── */
 footer {
   position: relative; z-index: 10;
   padding: 22px 48px;
@@ -276,7 +270,6 @@ footer p { font-size: 12px; color: var(--muted); }
   animation: blink 2.5s ease-in-out infinite;
 }
 
-/* ── KEYFRAMES ── */
 @keyframes up {
   from { opacity: 0; transform: translateY(22px); }
   to   { opacity: 1; transform: translateY(0); }
