@@ -202,7 +202,6 @@ h1 .italic { font-style: italic; font-weight: 400; }
   gap: 18px;
 }
 
-/* ── PILLS ── */
 .pills {
   display: flex;
   flex-wrap: wrap;

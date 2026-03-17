@@ -44,18 +44,18 @@
     </div>
 
     <div class="pills">
-      <div class="pill">🎭 Events</div>
-      <div class="pill">🍜 Dining</div>
-      <div class="pill">🎨 Arts</div>
-      <div class="pill">🏞️ Outdoors</div>
-      <div class="pill">🎵 Live Music</div>
-      <div class="pill">🏋️ Fitness</div>
-      <div class="pill">🎮 Gaming</div>
-      <div class="pill">🛍️ Shopping</div>
-      <a href="#" class="pill" onclick="window.location.href='results.html?q=night+life'; return false;">🍸 Nightlife</a>
-      <a href="#" class="pill" onclick="window.location.href='results.html?q=classes+and+workshops'; return false;">🎓 Classes and Workshops</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=events'; return false;">🎭 Events</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=dining'; return false;">🍜 Dining</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=arts'; return false;">🎨 Arts</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=outdoors'; return false;">🏞️ Outdoors</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=live+music'; return false;">🎵 Live Music</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=fitness'; return false;">🏋️ Fitness</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=gaming'; return false;">🎮 Gaming</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=shopping'; return false;">🛍️ Shopping</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=nightlife'; return false;">🍸 Nightlife</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=classes+and+workshops'; return false;">🎓 Classes & Workshops</a>
       <a href="#" class="pill" onclick="window.location.href='results.html?q=family+fun'; return false;">🎪 Family Fun</a>
-      <a href="#" class="pill" onclick="window.location.href='results.html?q=wellness+and+spa'; return false;">💆 Wellness and Spa</a>
+      <a href="#" class="pill" onclick="window.location.href='results.html?q=wellness+and+spa'; return false;">💆 Wellness & Spa</a>
     </div>
   </main>
 
@@ -81,6 +81,7 @@
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
 
+        // Save coords to profile
         window.NaboProfile?.saveLocation({ lat, lng: lon, source: 'gps', acquiredAt: new Date().toISOString() });
 
         try {

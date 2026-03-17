@@ -15,7 +15,6 @@ async function _awaitLocation(timeout = 8000) {
   return NaboProfile.get()?.location ?? null;
 }
 
-// ── Navigate to results page with query, prefs, and coords ──
 async function goSearch(query) {
   if (!query.trim()) return;
 
