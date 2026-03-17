@@ -342,3 +342,97 @@
   </div>
 
   <script src = "../scripts/profile.js"></script>
+  <script type="module">
+  import { fetchResults } from './api.js';
+
+  const params  = new URLSearchParams(window.location.search);
+  const query   = params.get('q') || 'things to do';
+  const grid    = document.getElementById('resultsGrid');
+  const meta    = document.getElementById('resultsMeta');
+  const label   = document.getElementById('queryLabel');
+  const filters = document.getElementById('filtersRow');
+
+  label.textContent       = query;
+  document.getElementById('searchInput').value = query;
+
+  // Skeletons while loading
+  grid.innerHTML = Array(5).fill(`
+    <div class="skeleton-card">
+      <div class="skel skel-title"></div>
+      <div class="skel skel-sub"></div>
+      <div class="skel skel-body"></div>
+    </div>`).join('');
+
+  // Show active prefs as filter chips
+  const profile = window.NaboProfile?.get();
+  const prefs   = [
+    ...(profile?.prefs?.interests ?? []),
+    profile?.prefs?.distance,
+    profile?.prefs?.budget,
+    profile?.prefs?.time,
+  ].filter(Boolean);
+
+  if (prefs.length) {
+    filters.innerHTML = prefs
+      .map(p => `<div class="filter-chip">${p}</div>`)
+      .join('');
+  }
+
+  try {
+    const results = await fetchResults(query);
+
+    meta.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
+
+    grid.innerHTML = results.length ? results.map((place, i) => `
+      <a class="result-card" href="${place.website || '#'}" target="_blank"
+         rel="noopener noreferrer"
+         style="animation-delay:${i * 60}ms">
+        <div class="card-left">
+          <div class="card-top">
+            <div class="card-rank">#${i + 1}</div>
+            <div class="card-name">${place.title ?? 'Unnamed'}</div>
+          </div>
+          <div class="card-type">${place.type ?? ''}</div>
+          <div class="card-address">${place.address ?? ''}</div>
+          <div class="card-tags">
+            ${(place.types ?? []).slice(0, 4)
+              .map(t => `<span class="card-tag">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="card-score">${place.score}</div>
+          <div class="card-score-label">match</div>
+          ${place.rating ? `
+            <div class="card-rating">
+              <span class="stars">★</span>${place.rating}
+              <span class="review-count">(${place.reviews ?? 0})</span>
+            </div>` : ''}
+        </div>
+      </a>`).join('')
+    : `<div class="state-box">
+         <div class="state-icon">🔍</div>
+         <div class="state-title">No results found</div>
+         <div class="state-sub">Try a different search or expand your area.</div>
+       </div>`;
+
+  } catch (err) {
+    console.error('fetchResults failed:', err);
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Something went wrong</div>
+        <div class="state-sub">${err.message}</div>
+      </div>`;
+  }
+
+  // Search bar
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) window.location.href = `results.html?q=${encodeURIComponent(q)}`;
+  });
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+</script>
+</body>
+</html>
